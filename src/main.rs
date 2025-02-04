@@ -12,6 +12,10 @@ fn file_hdf_open_read(filename: &str) -> File {
 
 fn info_display(filename: &String) -> () {
     let file = file_hdf_open_read(filename);
+    let dataset_names = file.member_names().expect("Non-empty file");
+    for dataset_name in dataset_names.iter() {
+        println!("{dataset_name:?}");
+    }
     return ();
 }
 
