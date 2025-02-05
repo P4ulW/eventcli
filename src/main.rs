@@ -1,6 +1,6 @@
 use hdf5::{File, H5Type, Result};
 use ndarray::s;
-use std::env;
+use std::{env, f64::NAN};
 
 fn file_hdf_open_read(filename: &str) -> File {
     let file = match File::open(filename) {
@@ -14,7 +14,17 @@ fn info_display(filename: &String) -> () {
     let file = file_hdf_open_read(filename);
     let dataset_names = file.member_names().expect("Non-empty file");
     for dataset_name in dataset_names.iter() {
-        println!("{dataset_name:?}");
+        let dataset = file.dataset(&dataset_name).expect("Valid Dataset");
+        let shape = dataset.shape();
+        let dtype = dataset
+            .dtype()
+            .expect("valid dtype")
+            .to_descriptor()
+            .unwrap();
+        println!(
+            "Name: {: <12} dtype: {:?}  shape: {:?}",
+            dataset_name, dtype, shape
+        );
     }
     return ();
 }
@@ -25,7 +35,7 @@ fn main() {
     //dbg!(&args);
 
     let instruction = &args[1];
-    if instruction == "-info" {
+    if instruction == "--info" || instruction == "-i" {
         assert!(args.len() > 2, "missing filename argument!");
         println!("giving info");
         let filename = &args[2];
