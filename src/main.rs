@@ -1,5 +1,8 @@
-use hdf5::{File, H5Type, Result};
-use ndarray::s;
+use hdf5::{
+    types::{IntSize, TypeDescriptor},
+    Dataset, File, H5Type, Result,
+};
+use ndarray::{s, ArrayD, IxDyn};
 use std::{env, f64::NAN};
 
 fn file_hdf_open_read(filename: &str) -> File {
@@ -10,7 +13,7 @@ fn file_hdf_open_read(filename: &str) -> File {
     return file;
 }
 
-fn info_display(filename: &String) -> () {
+fn info_display(filename: &String) {
     let file = file_hdf_open_read(filename);
     let dataset_names = file.member_names().expect("Non-empty file");
     for dataset_name in dataset_names.iter() {
@@ -25,8 +28,22 @@ fn info_display(filename: &String) -> () {
             "Name: {: <12} dtype: {:?}  shape: {:?}",
             dataset_name, dtype, shape
         );
+
+        match dtype {
+            TypeDescriptor::Unsigned(t) => process_dataset_unsigned(&dataset, t),
+            _ => println!("Type not implemented"),
+        };
     }
-    return ();
+}
+
+fn process_dataset_unsigned(dataset: &Dataset, size_bytes: IntSize) -> () {
+    println!(
+        "This is {:?} width bit length {} bits",
+        size_bytes,
+        TypeDescriptor::Unsigned(size_bytes).size() * 8
+    );
+    let data = dataset.read_slice_1d::<u32, _>(..10).expect("Valid Data");
+    println!("{data:?}\n");
 }
 
 fn main() {
